@@ -8,24 +8,47 @@ class Requestable
   include Radiodan::Logging
   def initialize
     uri = URI(ENV['MONGODB'])
-    db_name = uri.path.gsub(/^\//, '')
-    collection_name = 'playlists'
+    db_name = uri.path.split('/').last
 
     connection = Mongo::Connection.from_uri(uri.to_s)
-    db = connection.db db_name
-    @collection = db[collection_name] || db.create_collection(collection_name, {capped: true, size: 8000000})
+    @db = connection.db db_name
+    @playlists = collection('playlists', :max => 1)
+    @requests  = collection('requests',  :max => 50)
+    @play
   end
 
   def call(player)
     player.register_event :sync do |playlist|
-      @collection.insert(:playlist => playlist.attributes, :time => Time.now.to_f * 1000)
+      @playlists.insert(:playlist => playlist.attributes, :time => Time.now.to_f * 1000)
     end
 
-    EM::Synchrony.now_and_every(:minutes => 1) do
-      track = player.search(:artist => 'Fugazi').sample
-      player.playlist.tracks << track
-      logger.info "Added #{track[:file]}"
+    tail = Mongo::Cursor.new(@requests, :tailable => true, :order => [['$natural', 1]])
+
+    EM::Synchrony.now_and_every(0.5) do
+      request = tail.next
+      case
+      when request.nil?
+        next
+      when !request.has_key?('string')
+        next
+      when (Time.now - request['timestamp']) > 60
+        # a minute old is too old IMHO
+        next
+      else
+        track = player.search(request['string']).sample
+
+        next if track.nil?
+
+        player.playlist.tracks << track
+        logger.info "Added #{track[:file]}"
+      end
     end
+  end
+  
+  private
+  def collection(collection_name, options={})
+    options.merge!(:capped => true, :size => 8_000_000)
+    @db[collection_name].count > 0 ? @db[collection_name] : @db.create_collection(collection_name, options)
   end
 end
 
