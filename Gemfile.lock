@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/pixelblend/radiodan.git
-  revision: 04a1cadf10163abf11f444f00d83b831206d8738
+  revision: eda7d13df90e9306798dc75845a92ca104e06698
   branch: master
   specs:
     radiodan (0.0.4)
@@ -21,6 +21,9 @@ GEM
       activesupport (= 3.0.0)
     activesupport (3.0.0)
     addressable (2.3.5)
+    bson (1.9.2)
+    bson_ext (1.9.2)
+      bson (~> 1.9.2)
     coderay (1.0.9)
     cookiejar (0.3.0)
     daemons (1.1.9)
@@ -39,12 +42,24 @@ GEM
     em-synchrony (1.0.3)
       eventmachine (>= 1.0.0.beta.1)
     eventmachine (1.0.3)
+    faye (0.8.9)
+      cookiejar (>= 0.3.0)
+      em-http-request (>= 0.3.0)
+      eventmachine (>= 0.12.0)
+      faye-websocket (>= 0.4.0)
+      rack (>= 1.0.0)
+      yajl-ruby (>= 1.0.0)
+    faye-websocket (0.6.3)
+      eventmachine (>= 0.12.0)
+      websocket-driver (>= 0.2.0)
     foreman (0.63.0)
       dotenv (>= 0.7)
       thor (>= 0.13.6)
     http_parser.rb (0.5.3)
     i18n (0.6.5)
     method_source (0.8.2)
+    mongo (1.9.2)
+      bson (~> 1.9.2)
     pry (0.9.12.2)
       coderay (~> 1.0.5)
       method_source (~> 0.8)
@@ -71,11 +86,16 @@ GEM
       rack (>= 1.0.0)
     thor (0.18.1)
     tilt (1.4.1)
+    websocket-driver (0.2.3)
+    yajl-ruby (1.1.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  bson_ext
+  faye
   foreman
+  mongo
   pry
   radiodan!
