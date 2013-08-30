@@ -21,7 +21,14 @@ class Requestable
     player.register_event :sync do |playlist|
       @playlists.insert(:playlist => playlist.attributes, :time => Time.now.to_f * 1000)
     end
-
+    
+    player.register_event :play_state do |state|
+      # ran out of requests and stopped. but now there are more tracks!
+      if state == :stop && player.state.size > player.state.position+1
+        player.play player.state.position+1
+      end
+    end
+  
     tail = Mongo::Cursor.new(@requests, :tailable => true, :order => [['$natural', 1]])
 
     EM::Synchrony.now_and_every(0.5) do
@@ -60,4 +67,3 @@ radio = Radiodan.new do |builder|
 end
 
 radio.start
-
