@@ -22,11 +22,9 @@ class Requestable
       @playlists.insert(:playlist => playlist.attributes, :time => Time.now.to_f * 1000)
     end
     
-    player.register_event :play_state do |state|
+    player.register_event :play_pending do
       # ran out of requests and stopped. but now there are more tracks!
-      if state == :stop && player.state.size > player.state.position+1
-        player.play player.state.position+1
-      end
+      player.play player.state.size-1
     end
   
     tail = Mongo::Cursor.new(@requests, :tailable => true, :order => [['$natural', 1]])
