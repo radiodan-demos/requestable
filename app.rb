@@ -13,7 +13,7 @@ class Requestable
     connection = Mongo::Connection.from_uri(uri.to_s)
     @db = connection.db db_name
     @playlists = collection('playlists', :max => 2)
-    @requests  = collection('requests',  :max => 50)
+    @requests  = collection('requests',  :max => 5)
     @play
   end
 
