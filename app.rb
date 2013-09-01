@@ -7,18 +7,20 @@ require 'uri'
 class Requestable
   include Radiodan::Logging
   def initialize
+    raise 'set MONGODB environment variable' unless ENV.has_key?('MONGODB')
     uri = URI(ENV['MONGODB'])
     db_name = uri.path.split('/').last
 
     connection = Mongo::Connection.from_uri(uri.to_s)
     @db = connection.db db_name
-    @playlists = collection('playlists', :max => 2)
+    @playlists = collection('playlists', :max => 5)
     @requests  = collection('requests',  :max => 5)
     @play
   end
 
   def call(player)
     player.register_event :sync do |playlist|
+      logger.info "Updating playlist: #{playlist.attributes}"
       @playlists.insert(:playlist => playlist.attributes, :time => Time.now.to_f * 1000)
     end
     
@@ -61,6 +63,7 @@ radio = Radiodan.new do |builder|
   builder.log      STDOUT
   builder.adapter  :MPD, :host => 'localhost', :port => 6600
   builder.use      Requestable
+  builder.use      :touch_file, :dir => File.join(File.dirname(__FILE__), 'tmp')
   builder.playlist Radiodan::Playlist.new
 end
 
